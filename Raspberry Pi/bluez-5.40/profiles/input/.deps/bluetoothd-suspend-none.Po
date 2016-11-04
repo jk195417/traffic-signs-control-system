@@ -1,0 +1,33 @@
+profiles/input/bluetoothd-suspend-none.o: profiles/input/suspend-none.c \
+ /usr/include/stdc-predef.h config.h src/log.h \
+ /usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stdint.h \
+ /usr/include/stdint.h /usr/include/features.h \
+ /usr/include/arm-linux-gnueabihf/sys/cdefs.h \
+ /usr/include/arm-linux-gnueabihf/bits/wordsize.h \
+ /usr/include/arm-linux-gnueabihf/gnu/stubs.h \
+ /usr/include/arm-linux-gnueabihf/gnu/stubs-hard.h \
+ /usr/include/arm-linux-gnueabihf/bits/wchar.h profiles/input/suspend.h
+
+/usr/include/stdc-predef.h:
+
+config.h:
+
+src/log.h:
+
+/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/features.h:
+
+/usr/include/arm-linux-gnueabihf/sys/cdefs.h:
+
+/usr/include/arm-linux-gnueabihf/bits/wordsize.h:
+
+/usr/include/arm-linux-gnueabihf/gnu/stubs.h:
+
+/usr/include/arm-linux-gnueabihf/gnu/stubs-hard.h:
+
+/usr/include/arm-linux-gnueabihf/bits/wchar.h:
+
+profiles/input/suspend.h:
