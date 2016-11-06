@@ -44,6 +44,7 @@ void loop(){
   }
   // Write data to Serial Monitor
   if(resSize>0){
+    // 輸出所有收到的response
     // Serial.print(String("")+"response = "+response+" size = "+resSize+"\n");
     // Serial.flush();
     // delay(1); // 9600baud率時硬體會跟不上程式，所以加上這行

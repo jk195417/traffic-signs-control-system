@@ -1,0 +1,7 @@
+BLE_DEVICE="hci0"
+UUID="e2 c5 6d b5 df fb 48 d2 b0 60 d0 f5 a7 10 96 e0"
+UUID_FCU="fc 00 00 ac e0 00 10 50 00 00 00 00 00 00 00 00"
+MAJOR="00 01"
+MINOR="00 00"
+POWER="c8"
+
