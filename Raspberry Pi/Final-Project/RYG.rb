@@ -1,4 +1,4 @@
-# ruby gpio lib
+# Ruby GPIO lib
 require 'pi_piper'
 include PiPiper
 # ibeacon controller
@@ -9,12 +9,11 @@ run = true
 Rs = 10
 Ys = 2
 Gs = 10
-
 red_led = PiPiper::Pin.new(:pin => 4, :direction => :out)
-yello_led = PiPiper::Pin.new(:pin => 5, :direction => :out)
+yellow_led = PiPiper::Pin.new(:pin => 5, :direction => :out)
 green_led = PiPiper::Pin.new(:pin => 6, :direction => :out)
 
-# enter "exit" to interrupt loop
+# Enter "exit" to interrupt loop
 thr = Thread.new{
   input = ""
   while run
@@ -23,39 +22,40 @@ thr = Thread.new{
   end
 }
 
+# Init ibeacon
 puts "準備就緒"
 ibeacon.start
 
 while run
-  # 紅燈
+  # Red LED
   red_led.on
-  yello_led.off
+  yellow_led.off
   green_led.off
   ibeacon.change("R")
   puts "紅燈"
   sleep(Rs)
 
-  # 綠燈
+  # Green LED
   red_led.off
-  yello_led.off
+  yellow_led.off
   green_led.on
   ibeacon.change("G")
   puts "綠燈"
   sleep(Gs)
 
-  # 黃燈
+  # Yellow LED
   red_led.off
-  yello_led.on
+  yellow_led.on
   green_led.off
   ibeacon.change("Y")
   puts "黃燈"
   sleep(Ys)
 end
-
+thr.join
+# Reset GPIO and ibeacon
 red_led.off
-yello_led.off
+yellow_led.off
 green_led.off
 ibeacon.stop
 puts "結束"
 
-thr.join
