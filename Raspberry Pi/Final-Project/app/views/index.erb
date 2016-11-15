@@ -1,6 +1,31 @@
-<h1>Welcome!</h1>
-<h2>What would you want to do</h2>
-<ul>
-  <li><a href="/restart">restart</a></li>
-  <li><a href="/config">config</a></li>
-</ul>
+<div class="page-header">
+  <h1 class="text-center">IBeacon Traffic Lights</h1>
+  <h1 class="text-center"><small>Welcome! What would you want to do?</small></h1>
+</div>
+
+<h2>Control Interface</h2>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <ul class="nav nav-tabs">
+      <li class="active col-sm-6"><a href="#actions" data-toggle="tab" aria-expanded="true">Actions</a></li>
+      <li class="col-sm-6"><a href="#configure" data-toggle="tab" aria-expanded="false">Configure</a></li>
+    </ul>
+  </div>
+  <div class="panel-body">
+    <div id="myTabContent" class="tab-content">
+      <div class="tab-pane fade active in" id="actions">
+        <div class="btn-group btn-group-justified">
+          <a class="btn btn-success btn-lg" href="/start">start</a>
+          <a class="btn btn-danger btn-lg" href="/stop">stop</a>
+          <a class="btn btn-warning btn-lg" href="/restart">restart</a>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="configure">
+        <div class="btn-group btn-group-justified">
+          <a class="btn btn-primary btn-lg" href="/config">config</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>
