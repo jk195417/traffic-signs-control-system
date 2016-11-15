@@ -1,0 +1,31 @@
+<h1>Configration
+<h2>infomation</h2>
+<div>
+  <h3>iBeacon</h3>
+  <ul>
+    <li>UUID</li><%= config["uuid"] %>
+    <li>MAJOR</li><%= config["major"] %>
+    <li>MINOR</li><%= config["minor"] %>
+  </ul>
+  <h3>Traffic lights</h3>
+  <ul>
+    <li>Red time</li><%= config["Rs"] %>s
+    <li>Green time</li><%= config["Gs"] %>s
+    <li>Yellow time</li><%= config["Ys"] %>s
+  </ul>
+</div>
+<h2>setting</h2>
+<a href="config/default">default</a>
+<form action="/config" method="POST">
+  <h3>iBeacon</h3>
+  UUID: <input type="text" name="config[uuid]" value="<%= config["uuid"] %>">
+  MAJOR: <input type="text" name="config[major]" value="<%= config["major"] %>">
+  MINOR: <input type="text" name="config[minor]" value="<%= config["minor"] %>"> 
+  <h3>Traffic lights</h3>
+  Red time: <input type="text" name="config[Rs]" value="<%= config["Rs"] %>">
+  Green time: <input type="text" name="config[Gs]" value="<%= config["Gs"] %>">
+  Yellow time: <input type="text" name="config[Ys]" value="<%= config["Ys"] %>">
+  <input type="submit">
+</form>
+
+<a href="/">back</a>
