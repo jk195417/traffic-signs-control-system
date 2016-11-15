@@ -1,6 +1,0 @@
-#!/bin/sh
-. /home/pi/ibeacon/ibeacon.conf
-echo
-echo "Disable iBeacon Advertising ..."
-sudo hciconfig $BLE_DEVICE noleadv
-echo "Complete"
