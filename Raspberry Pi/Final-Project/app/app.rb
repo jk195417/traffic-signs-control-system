@@ -1,6 +1,10 @@
 require 'sinatra'
 require_relative('config')
 
+use Rack::Auth::Basic, "Restricted Area" do |username, password|
+    [username, password] == ['admin', 'admin']  
+end
+
 set :config, settings.root + '/config'
 set :config, settings.root + '/config'
 Config.path(settings.config+'/config')
@@ -9,36 +13,47 @@ get '/' do
   erb :index
 end
 get '/start' do
-  if $ps.nil? || $ps.closed?
-    $ps = IO.popen("rvmsudo ruby RYG.rb")
-    $pid = $ps.pid
-    @message = "start success"
+  if $pid.nil?
+    $pid = spawn("rvmsudo ruby RYG.rb")
+    @message = "Traffic lights start success"
+    @success = true
+    @status = "start"
   else
-    @message = "is started already"
+    @message = "Traffic lights is started already"
+    @success = false
+    @status = "stop"
   end
-  erb :led_action, :locals => {:message => @message}
+  erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
 get '/stop' do
-  if $pid && $ps && !$ps.closed?
-    Process.kill("INT", $pid)
-    $ps.close
-    @message = "stop success"
+  if $pid
+    # `sudo kill #{$pid}` 
+    # 只殺掉了 main process，其衍生 child process 都還在
+    # 由於 start 呼叫 main process 的 child process 才是我們執行的主程式
+    # 故須改成下列 script 才能刪掉整個 process 樹
+    `sudo pkill -P #{$pid}`
+    $pid = nil
+    @message = "Traffic lights stop success"
+    @success = true
   else
-    @message = "is stoped already"
+    @message = "Traffic lights is stoped already"
+    @success = false
   end
-  erb :led_action, :locals => {:message => @message}
+  @status = "stop"
+  erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
 get '/restart' do
-  if $pid && $ps && !$ps.closed?
-    Process.kill("INT", $pid)
-    $ps.close
-    $ps = IO.popen("rvmsudo ruby RYG.rb")
-    $pid = $ps.pid
-    @message = "restart success"
+  if $pid
+    `sudo pkill -P #{$pid}`
+    $pid = spawn("rvmsudo ruby RYG.rb")
+    @message = "Traffic lights restart success"
+    @success = true
   else
-    @message = "can't restart, maybe there is no traffic lights running"
+    @message = "Traffic lights can't restart, maybe there is no traffic lights running"
+    @success = false
   end
-  erb :led_action, :locals => {:message => @message}
+  @status = "start"
+  erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
 get '/config' do
   @config = Config.get

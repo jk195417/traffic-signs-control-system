@@ -6,18 +6,26 @@ require_relative 'ibeacon'
 # config interface
 require_relative 'config'
 
-run = true
-Config.path("./config/config")
-@config = Config.get
-ibeacon = Ibeacon.new(@config)
-Rs = @config["Rs"].to_i
-Ys = @config["Ys"].to_i
-Gs = @config["Gs"].to_i
-red_led = PiPiper::Pin.new(:pin => 4, :direction => :out)
-yellow_led = PiPiper::Pin.new(:pin => 5, :direction => :out)
-green_led = PiPiper::Pin.new(:pin => 6, :direction => :out)
+
 
 begin
+  run = true
+  Config.path("./config/config")
+  @config = Config.get
+  ibeacon = Ibeacon.new(@config)
+  Rs = @config["Rs"].to_i
+  Ys = @config["Ys"].to_i
+  Gs = @config["Gs"].to_i
+  red_led = PiPiper::Pin.new(:pin => 4, :direction => :out)
+  yellow_led = PiPiper::Pin.new(:pin => 5, :direction => :out)
+  green_led = PiPiper::Pin.new(:pin => 6, :direction => :out)
+
+  # let linux signal TERM turn to Interrupt
+  Signal.trap("TERM"){
+    puts "get a Terminate"
+    raise Interrupt
+  }
+  
   # Init ibeacon
   puts "Ready"
   ibeacon.start
@@ -54,7 +62,7 @@ rescue Interrupt => e
   green_led.off
   ibeacon.stop
 rescue Errno::EPIPE
-  puts "ibeacon doen"
+  puts "ibeacon didn't down"
 ensure
   # Reset GPIO and ibeacon
   puts "RYG End"

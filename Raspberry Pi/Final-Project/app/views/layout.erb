@@ -31,6 +31,19 @@
         </div>
       </div>
     </nav>
+    <% if message||=false %>
+    <% if success %>
+    <div class="alert alert-dismissible alert-success">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <p class="lead"><%= message %></p>
+    </div>
+    <% else %>
+    <div class="alert alert-dismissible alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <p class="lead"><%= message %></p>
+    </div>
+    <% end %>
+    <% end %>
     <div class="container">
       <%= yield %>
     </div>
