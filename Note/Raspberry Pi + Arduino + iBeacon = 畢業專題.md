@@ -312,18 +312,24 @@ end
 
 ```json
 {
-  // ibeacon config
   "ble_devise": "hci0",
   "uuid": "fc 00 00 ac e0 00 10 50 00 00 00 00 00 00 00 00",
   "major": "00 01",
   "minor": "00 00",
   "power": "c8",
-  // traffic lights times config
   "Rs": "10",
   "Gs": "10",
   "Ys": "2"
 }
 ```
+- `ble_devise` 哪一個藍芽 devise
+- `uuid` ibeacon UUID
+- `major` ibeacon Major 
+- `minor` ibeacon Minor 
+- `power` ibeacon 功率 
+- `Rs` 紅燈秒數  
+- `Gs` 綠燈秒數
+- `Ys` 黃燈秒數
 
 #### 使用方法 :
 
