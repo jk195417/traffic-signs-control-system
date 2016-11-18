@@ -1,6 +1,4 @@
 class Ibeacon
-  attr_accessor(:config,:ble_devise,:uuid,:major,:minor,:power)
-  
   def initialize(config)
     @config = {}
     @ble_devise = ""
@@ -8,7 +6,6 @@ class Ibeacon
     @major = ""
     @minor = ""
     @power = ""
-
     setting(config)
     # puts "ble_devise:#{@ble_devise}"
     # puts "uuid:#{@uuid}"
@@ -44,7 +41,6 @@ class Ibeacon
     @minor = @config["minor"]
     @power = @config["power"]
   end
-
   def broadcast
     `sudo hcitool -i #{@ble_devise} cmd 0x08 0x0008 1E 02 01 1A 1A FF 4C 00 02 15 #{@uuid} #{@major} #{@minor} #{@power} 00`
   end
