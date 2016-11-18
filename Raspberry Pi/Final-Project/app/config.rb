@@ -4,8 +4,8 @@ module Config
   class << self
     def path(path)
       @path = path
-      if File.exist?(path+'.json')
-        @config = JSON.parse(File.read(path+'.json'))
+      if File.exist?(@path+'.json')
+        @config = JSON.parse(File.read(@path+'.json'))
       else
         @config = get_default
       end
@@ -22,7 +22,7 @@ module Config
     end
 
     def get
-      @config
+      @config||=get_default
     end
 
     def set(conf)
