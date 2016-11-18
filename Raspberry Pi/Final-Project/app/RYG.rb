@@ -5,9 +5,6 @@ include PiPiper
 require_relative 'ibeacon'
 # config interface
 require_relative 'config'
-
-
-
 begin
   run = true
   Config.path("./config/config")
@@ -19,17 +16,14 @@ begin
   red_led = PiPiper::Pin.new(:pin => 4, :direction => :out)
   yellow_led = PiPiper::Pin.new(:pin => 5, :direction => :out)
   green_led = PiPiper::Pin.new(:pin => 6, :direction => :out)
-
   # let linux signal TERM turn to Interrupt
   Signal.trap("TERM"){
     puts "get a Terminate"
     raise Interrupt
   }
-  
   # Init ibeacon
   puts "Ready"
   ibeacon.start
-
   loop {
     # Red LED
     red_led.on
@@ -38,7 +32,6 @@ begin
     ibeacon.minor="00 01"
     puts "Red"
     sleep(Rs)
-
     # Green LED
     red_led.off
     yellow_led.off
@@ -46,7 +39,6 @@ begin
     ibeacon.minor="00 03"
     puts "Green"
     sleep(Gs)
-
     # Yellow LED
     red_led.off
     yellow_led.on
@@ -67,5 +59,3 @@ ensure
   # Reset GPIO and ibeacon
   puts "RYG End"
 end
-
-
