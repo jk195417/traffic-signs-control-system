@@ -1,6 +1,8 @@
 # Raspberry Pi + Arduino + iBeacon = 畢業專題
 透過 Raspberry Pi 發出 ibeacon 廣播的交通號誌，並且可以用網頁控制開關與參數設定，再以 Arduino + HM-10 晶片接收廣播將當前號誌輸出至LED
 
+![system-construction.png](./system-construction.png)
+
 ## 材料
 
 1. Raspberry Pi 2 Model B
@@ -344,29 +346,213 @@ Config.get # 可以取得 config.json 的資料內容 hash
 
 ### 安裝 Pi_piper
 
+pi_piper 的 github : [https://github.com/jwhitehorn/pi_piper](https://github.com/jwhitehorn/pi_piper)
 
+pi_piper這支ruby lib，其實是調用 c 的 lib bcm2835 製作而成，bcm2835 是 控制 Pi 的 GPIO
+
+首先先下載 pi_piper gem
+
+```sh
+$ gem install pi_piper
+```
+
+#### 使用方法 :
+
+```rb
+# 在 RYG.rb 程式中 require 它
+require 'pi_piper'
+include PiPiper
+
+# 宣告新的 GPIO pin4
+pin4 = PiPiper::Pin.new(:pin => 4, :direction => :out)
+
+# pin4 高電位
+pin4.on
+
+# pin4 低電位
+pin4.off
+```
+
+這裡的 GPIO pin 角位是 Raspberry Pi 的官方 GPIO 角位 ，不是 wiringpi 的角位
 
 ### RYG.rb
 
+這支程式就是我們的專題的核心，require 的函式庫有 `pi_piper`、`config`、`ibeacon`。  
+
+1. 一開始先用 `config.rb` 讀取 `config.json`，取得紅綠黃燈的秒數與把ibeacon所需的參數傳給 `ibeacon.rb`。
+2. 進入無窮迴圈，紅綠黃燈輪迴，透過 PiPiper 函式庫輸出高電位至對應燈號角位，並且輸出對應燈號的 ibeacon minor 值。
+3. 捕捉 interrupt 訊號，如果程式被中斷，即將燈號電位歸零，ibeacon廣播終止。
 
 
 ### GPIO 與 LED 線路
 
 
 
-### 安裝 Sinatra
+### 安裝 Sinatra 與 app.rb 
 
+首先先安裝Sinatra
 
+```sh
+$ gem install sinatra
+```
 
-### app.rb 
+接著在 app.rb 中 require 它
 
+```ruby
+require 'sinatra'
 
+get 'some/path' do
+    # something
+end
+```
+
+接著設定我們能夠接受的路由路徑
+
+```rb
+get '/' do
+end
+
+get '/start' do
+end
+
+get '/stop' do
+end
+
+get '/restart' do
+end
+
+get '/config' do
+end
+
+post '/config' do
+end
+
+get '/config/default' do
+end
+```
+並在do end中執行當路由匹配時想執行的程式
 
 ### 安裝與設定 Passenger
+#### 安裝Passenger（ 含 Apache ）
+
+~~~sh
+$ gem install passenger
+$ sudo apt-get update
+$ sudo apt-get install libcurl4-openssl-dev
+$ sudo apt-get install apache2-mpm-worker
+$ sudo apt-get install libapr1-dev
+$ sudo apt-get install libaprutil1-dev
+$ sudo apt-get install apache2-threaded-dev
+$ passenger-install-apache2-module
+~~~
+
+跟著提示步驟走即可。
+
+#### 設定Passenger
+
+~~~sh
+$ passenger-config about ruby-command
+~~~
+
+取得目前使用的ruby command path 等等設定apache會用到
+
+#### 連結 app 與 Passenger 與 Apache
+
+在app path:`/home/pi/Final-Project/app`處新增兩個資料夾`public``tmp`，與一個rackup檔案`config.ru`
+
+~~~sh
+$ mkdir public
+$ mkdir tmp
+$ nano config.ru
+~~~
+
+public 資料夾就是 Apache 與 Passenger 與 app 溝通所需的資料夾空間，app網頁中用到的圖片、css、js，也都需要放置在此資料夾內。
+
+`config.ru`內容
+
+~~~ruby 
+require "./app.rb"
+run Sinatra::Application
+~~~
+
+這樣一來 當設定完 Apache ，訪問 pi 的 ip `192.168.1.113` 就能看到我們的 web app 了
 
 
 
-### 安裝與設定 Apache
+### 設定 Apache
+
+#### 基礎設定
+
+設定檔放置在`/etc/apache2/apache2.conf`
+
+~~~sh
+$ sudo nano /etc/apache2/apache2.conf 
+~~~
+
+設定檔內容，把其他Directory註解掉
+
+~~~
+LoadModule passenger_module /home/pi/.rvm/gems/ruby-2.3.0/gems/passenger-5.0.30/buildout/apache2/mod_passenge$
+<IfModule mod_passenger.c>
+    PassengerRoot /home/pi/.rvm/gems/ruby-2.3.0/gems/passenger-5.0.30
+    PassengerDefaultRuby /home/pi/.rvm/gems/ruby-2.3.0/wrappers/ruby
+</IfModule>
+
+# 把其他Directory註解掉並加上下面內容取代
+<VirtualHost *:80>
+    ServerName localhost
+
+    # Tell Apache and Passenger where your app's 'public' directory is
+    DocumentRoot /home/pi/Final-Project/app/public
+
+    PassengerRuby /home/pi/.rvm/gems/ruby-2.3.0/wrappers/ruby
+
+    # Relax Apache security settings
+    <Directory /home/pi/Final-Project/app/public>
+      Allow from all
+      Options -MultiViews
+      # Uncomment this if you're on Apache > 2.4:
+      #Require all granted
+    </Directory>
+</VirtualHost>
+~~~
+
+設定完後執行
+
+~~~sh
+$ sudo apache2ctl restart
+~~~
+
+但是會報錯
+
+~~~
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.0.1. Set the 'ServerName' directive globally to suppress this message
+~~~
+
+#### 設定Servername
+
+~~~sh
+$ sudo nano /etc/apache2/conf-available/servername.conf
+~~~
+
+在`/etc/apache2/conf-available/servername.conf`寫入
+
+~~~
+ServerName localhost
+~~~
+
+讓apache啟用設定檔
+
+~~~sh
+$ sudo a2enconf servername
+$ sudo service apache2 reload
+~~~
+
+這時候再重啟就不會報錯了
+
+~~~sh
+$ sudo apache2ctl restart
+~~~
 
 
 
@@ -401,5 +587,18 @@ Config.get # 可以取得 config.json 的資料內容 hash
 - Raspberry Pi 發送 iBeacon  
 [http://cheng-min-i-taiwan.blogspot.tw/2015/03/raspberry-pi-40ibeacon.html](http://cheng-min-i-taiwan.blogspot.tw/2015/03/raspberry-pi-40ibeacon.html)
 
+- pi_piper 的 github  
+[https://github.com/jwhitehorn/pi_piper](https://github.com/jwhitehorn/pi_piper)
 
+- Ruby Process 與 Signal 參考
+[https://ruby-doc.org/core-2.3.0/Process.html#method-c-kill](https://ruby-doc.org/core-2.3.0/Process.html#method-c-kill)  
+[http://stackoverflow.com/questions/14635318/having-a-io-popen-command-be-killed-when-the-caller-process-is-killed](http://stackoverflow.com/questions/14635318/having-a-io-popen-command-be-killed-when-the-caller-process-is-killed)  
+[https://ruby-doc.org/core-2.3.0/Signal.html](https://ruby-doc.org/core-2.3.0/Signal.html)  
+[http://ddl1st.iteye.com/blog/1772049](http://ddl1st.iteye.com/blog/1772049)  
+[https://ruby-china.org/topics/8089](https://ruby-china.org/topics/8089)  
 
+- Raspberry Pi 設定 Ruby Passenger 與 Apache 參考
+[http://recipes.sinatrarb.com/p/deployment/apache_with_passenger?#article](http://recipes.sinatrarb.com/p/deployment/apache_with_passenger?#article)  
+[https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/](https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/)  
+[http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name](http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name)  
+[http://stackoverflow.com/questions/3371208/how-to-setup-a-sinatra-app-under-apache-with-passenger](http://stackoverflow.com/questions/3371208/how-to-setup-a-sinatra-app-under-apache-with-passenger)
