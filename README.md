@@ -2,7 +2,7 @@
 
 #導覽
 
-[材料](https://github.com/jk195417/FCU-Final-Project/wiki/%E6%9D%90%E6%96%99) 
+- [材料](https://github.com/jk195417/FCU-Final-Project/wiki/%E6%9D%90%E6%96%99) 
 
 ## Raspberry Pi
 
