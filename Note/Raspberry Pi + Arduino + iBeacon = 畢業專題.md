@@ -1,9 +1,32 @@
 # Raspberry Pi + Arduino + iBeacon = 畢業專題
 透過 Raspberry Pi 發出 ibeacon 廣播的交通號誌，並且可以用網頁控制開關與參數設定，再以 Arduino + HM-10 晶片接收廣播將當前號誌輸出至LED
 
+## 導覽
+
+- [材料](#material) 
+- [參考資料](#ref) 
+
+### Raspberry Pi
+
+- [Raspberry Pi : 安裝與設定 RVM](#pi-1)  
+- [Raspberry Pi : 使用藍芽 Dongle 與安裝 BlueZ](#pi-2)  
+- [Raspberry Pi : 說明 ibeacon.rb](#pi-3)  
+- [Raspberry Pi : 說明 config.rb 與 config.json](#pi-4)  
+- [Raspberry Pi : 安裝 Pi_piper](#pi-5)  
+- [Raspberry Pi : 說明 RYG.rb](#pi-6)  
+- [Raspberry Pi : 說明 GPIO 與 LED 線路](#pi-7)  
+- [Raspberry Pi : 安裝 Sinatra 與 app.rb](#pi-8)  
+- [Raspberry Pi : 安裝與設定 Passenger](#pi-9)  
+- [Raspberry Pi : 設定 Apache](#pi-10)  
+
+### Arduino
+
+- [Arduino : 說明硬體線路](#arduino-1)  
+- [Arduino : 說明主程式](#arduino-2)  
+
 ![system-construction.png](./system-construction.png)
 
-## 材料
+## <a name="material"></a>材料
 
 1. Raspberry Pi 2 Model B
     1. microSD 16GB
@@ -25,7 +48,7 @@
 
 參考 [http://www.botsheet.com/cht/raspberry-pi-tutorial-install-raspbian-windows/](http://www.botsheet.com/cht/raspberry-pi-tutorial-install-raspbian-windows/)
 
-### 安裝與設定 Ruby RVM
+### <a name="pi-1"></a>安裝與設定 Ruby RVM
 
 參考 rvm 官網 : [https://rvm.io/](https://rvm.io/)
 
@@ -55,7 +78,7 @@ $ rvm use 2.3 --default
 
 再次重開終端機，完成!
 
-### 藍芽 dongle 與安裝 BlueZ
+### <a name="pi-2"></a>藍芽 dongle 與安裝 BlueZ
 
 #### BlueZ
 
@@ -186,11 +209,11 @@ $ sudo hciconfig hci0 leadv
 # 發送 iBeacon 廣播
 $ sudo hcitool -i hci0 cmd 0x08 0x0008 1E 02 01 1A 1A FF 4C 00 02 15 \
 $ E2 C5 6D B5 DF FB 48 D2 B0 60 D0 F5 A7 10 96 E0 \
-$ 00 00 00 00 C8 00
+$ 00 00 00 00 C8
 ~~~
 
-封包結構是由 **UUID**(16byte) + **Major**(2byte) + **Minor**(2byte) + **Tx Power**
-  
+封包結構是由 **iBeacon Prefix**(9bytes) + **UUID**(16bytes) + **Major**(2bytes) + **Minor**(2bytes) + **Tx Power**(1byte)
+
 我們試著來解讀剛剛發送的封包內容
 
 ~~~sh
@@ -198,7 +221,7 @@ $ sudo hcitool -i hci0 cmd 0x08 0x0008 1E 02 01 1A 1A FF 4C 00 02 15 \
 E2 C5 6D B5 DF FB 48 D2 B0 60 D0 F5 A7 10 96 E0 \
 00 00 \
 00 00 \
-C8 00
+C8
 ~~~
 
 - iBeacon固定格式 `02 01 1A 1A FF 4C 00 02 15`  
@@ -221,10 +244,10 @@ c5
 - UUID : `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee`   
 - Major : `01 00`
 - Minor : `01 00` 
-- Tx Power : c5
+- Tx Power : `c5`
 
 
-### ibeacon.rb
+### <a name="pi-3"></a>ibeacon.rb
 
 這支程式內包含了一個 `Ibeacon` Class，能夠藉由傳入的參數設定 ibeacon，並且發出command 啟動/暫停/廣播 ibeacon
 
@@ -271,7 +294,7 @@ ibeacon.start
 ibeacon.stop
 ```
 
-### config.rb 與 config.json
+### <a name="pi-4"></a>config.rb 與 config.json
 
 #### config.rb 模組結構 :
 
@@ -344,11 +367,11 @@ Config.path("./config/config")
 Config.get # 可以取得 config.json 的資料內容 hash
 ```
 
-### 安裝 Pi_piper
+### <a name="pi-5"></a>安裝 Pi_piper
 
 pi_piper 的 github : [https://github.com/jwhitehorn/pi_piper](https://github.com/jwhitehorn/pi_piper)
 
-pi_piper這支ruby lib，其實是調用 c 的 lib bcm2835 製作而成，bcm2835 是 控制 Pi 的 GPIO
+pi_piper這支ruby lib，其實是調用 c 的 lib bcm2835 製作而成，bcm2835 可以控制 Pi 的 GPIO
 
 首先先下載 pi_piper gem
 
@@ -375,7 +398,7 @@ pin4.off
 
 這裡的 GPIO pin 角位是 Raspberry Pi 的官方 GPIO 角位 ，不是 wiringpi 的角位
 
-### RYG.rb
+### <a name="pi-6"></a>RYG.rb
 
 這支程式就是我們的專題的核心，require 的函式庫有 `pi_piper`、`config`、`ibeacon`。  
 
@@ -384,18 +407,19 @@ pin4.off
 3. 捕捉 interrupt 訊號，如果程式被中斷，即將燈號電位歸零，ibeacon廣播終止。
 
 
-### GPIO 與 LED 線路
+### <a name="pi-7"></a>GPIO 與 LED 線路
 
 
 
-### 安裝 Sinatra 與 app.rb 
+### <a name="pi-8"></a>安裝 Sinatra 與 app.rb 
 
+#### 安裝 :
 首先先安裝Sinatra
 
 ```sh
 $ gem install sinatra
 ```
-
+#### 使用方法 :  
 接著在 app.rb 中 require 它
 
 ```ruby
@@ -432,7 +456,7 @@ end
 ```
 並在do end中執行當路由匹配時想執行的程式
 
-### 安裝與設定 Passenger
+### <a name="pi-9"></a>安裝與設定 Passenger
 #### 安裝Passenger（ 含 Apache ）
 
 ~~~sh
@@ -479,7 +503,7 @@ run Sinatra::Application
 
 
 
-### 設定 Apache
+### <a name="pi-10"></a>設定 Apache
 
 #### 基礎設定
 
@@ -558,21 +582,17 @@ $ sudo apache2ctl restart
 
 ## Arduino
 
-### HM-10晶片接線
+### <a name="arduino-1"></a>硬體接線
 
 
 
-### LED燈接線
-
-
-
-### 主程式
+### <a name="arduino-2"></a>主程式
 
 1. 透過嵌入在主程式中的 AT Command 查詢附近 iBeacon
 2. 操作字元取得iBeacon狀態
 3. 條件判斷LED燈亮暗
 
-## 參考資料
+## <a name="ref"></a>參考資料
 
 - 安裝 Raspbian 作業系統  
 [http://www.botsheet.com/cht/raspberry-pi-tutorial-install-raspbian-windows/](http://www.botsheet.com/cht/raspberry-pi-tutorial-install-raspbian-windows/)
