@@ -1,20 +1,20 @@
 require 'sinatra'
-require_relative('config')
+require_relative('lib/config')
 
 use Rack::Auth::Basic, "Restricted Area" do |username, password|
     [username, password] == ['admin', 'admin']  
 end
 
 set :config, settings.root + '/config'
-set :config, settings.root + '/config'
 Config.path(settings.config+'/config')
 
 get '/' do
   erb :index
 end
+
 get '/start' do
   if $pid.nil?
-    $pid = spawn("rvmsudo ruby RYG.rb")
+    $pid = spawn("rvmsudo ruby lib/RYG.rb")
     @message = "Traffic lights start success"
     @success = true
     @status = "start"
@@ -25,6 +25,7 @@ get '/start' do
   end
   erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
+
 get '/stop' do
   if $pid
     # `sudo kill #{$pid}` 
@@ -42,10 +43,11 @@ get '/stop' do
   @status = "stop"
   erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
+
 get '/restart' do
   if $pid
     `sudo pkill -P #{$pid}`
-    $pid = spawn("rvmsudo ruby RYG.rb")
+    $pid = spawn("rvmsudo ruby lib/RYG.rb")
     @message = "Traffic lights restart success"
     @success = true
   else
@@ -55,15 +57,21 @@ get '/restart' do
   @status = "start"
   erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
+
 get '/config' do
   @config = Config.get
   erb :config, :locals => {:config => @config}
 end
+
 post '/config' do
-  Config.set(params[:config])
+  config = params[:config]
+  # make time of traffic lights logical : Rs = Gs + Ys
+  config["Rs"] = (config["Ys"].to_i+config["Gs"].to_i).to_s
+  Config.set(config)
   Config.update
   redirect to('/config')
 end
+
 get '/config/default' do
   Config.reset
   Config.update

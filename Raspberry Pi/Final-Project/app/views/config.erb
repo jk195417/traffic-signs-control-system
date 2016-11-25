@@ -59,7 +59,7 @@
       <div class="form-group">
         <label for="inputRs" class="col-lg-2 control-label">Red LED Time</label>
         <div class="col-lg-10">
-          <select class="form-control" id="inputRs" name="config[Rs]">
+          <!-- <select class="form-control" id="inputRs" name="config[Rs]">
           <% (1..100).each do |n| %>
             <% if n.to_s == config["Rs"] %>
               <option selected="selected" value="<%= n %>" type="text"><%= n %></option>
@@ -67,7 +67,8 @@
               <option value="<%= n %>" type="text"><%= n %></option>
             <% end %>
           <% end %>
-          </select>
+          </select> -->
+          Rs = Ys + Gs
         </div>
       </div>
       <div class="form-group">
