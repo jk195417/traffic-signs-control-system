@@ -50,11 +50,12 @@ get '/restart' do
     $pid = spawn("rvmsudo ruby lib/RYG.rb")
     @message = "Traffic lights restart success"
     @success = true
+    @status = "start"
   else
     @message = "Traffic lights can't restart, maybe there is no traffic lights running"
     @success = false
+    @status = "stop"
   end
-  @status = "start"
   erb :led_action, :locals => {:message => @message, :success => @success, :status => @status}
 end
 
