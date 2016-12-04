@@ -90,20 +90,21 @@ void loop(){
 
   // 如果 response 有內容
   if(response != ""){
-
     // 處理 response 字串，確認回傳字串是否為目標字串
-    if(response.substring(0,15) == searchCondi){
-
+    
+    if(response.substring(0,searchCondi.length()) == searchCondi){
       // 取得response字串內uuid,major,minor
-      uuid = response.substring(16,49);
-      major = response.substring(50,53);
-      minor = response.substring(54,57);
-
+      uuid = response.substring(17,49);
+      major = response.substring(50,54);
+      minor = response.substring(54,58);
+      
       // 根據 status 判斷要顯示哪組紅綠燈
       if(status){
-        ligth_up_led(minor.substring(0,1));
+        ligth_up_led(minor.substring(0,2));
+        Serial.println("status: true");
       }else{
-        ligth_up_led(minor.substring(2,3));
+        ligth_up_led(minor.substring(2,4));
+        Serial.println("status: false");
       }
       
       // 清除字串
