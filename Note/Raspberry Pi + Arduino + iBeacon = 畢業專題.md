@@ -409,6 +409,14 @@ pin4.off
 
 ### <a name="pi-7"></a>GPIO 與 LED 線路
 
+Raspberry Pi GPIO 參考圖片:  
+![Raspberry Pi GPIO Sheets](Raspberry Pi GPIO Sheets.png)
+
+Raspberry Pi 麵包版接線圖:  
+![Raspberry Pi](Raspberry Pi.png)
+
+Raspberry Pi 電路圖:  
+![Raspberry Pi Schematic](Raspberry Pi Schematic.png)
 
 
 ### <a name="pi-8"></a>安裝 Sinatra 與 app.rb 
@@ -583,6 +591,12 @@ $ sudo apache2ctl restart
 ## Arduino
 
 ### <a name="arduino-1"></a>硬體接線
+麵包版接線圖:  
+![Arduino.png](Arduino.png)
+
+電路圖:  
+![Arduino Schematic](Arduino Schematic.png)
+
 
 
 
@@ -622,3 +636,6 @@ $ sudo apache2ctl restart
 [https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/](https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/)  
 [http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name](http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name)  
 [http://stackoverflow.com/questions/3371208/how-to-setup-a-sinatra-app-under-apache-with-passenger](http://stackoverflow.com/questions/3371208/how-to-setup-a-sinatra-app-under-apache-with-passenger)
+
+- 繪製電路圖軟體 Fritzing  
+[http://fritzing.org/home/](http://fritzing.org/home/)
