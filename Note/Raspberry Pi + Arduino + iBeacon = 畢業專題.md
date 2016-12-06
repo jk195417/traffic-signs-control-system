@@ -382,7 +382,7 @@ $ gem install pi_piper
 #### 使用方法 :
 
 ```rb
-# 在 RYG.rb 程式中 require 它
+# 在 lights.rb 程式中 require 它
 require 'pi_piper'
 include PiPiper
 
@@ -398,13 +398,16 @@ pin4.off
 
 這裡的 GPIO pin 角位是 Raspberry Pi 的官方 GPIO 角位 ，不是 wiringpi 的角位
 
-### <a name="pi-6"></a>RYG.rb
+### <a name="pi-6"></a>RYG.rb 與 lights.rb
 
-這支程式就是我們的專題的核心，require 的函式庫有 `pi_piper`、`config`、`ibeacon`。  
+`lights.rb` 這支程式 require 了 `pi_piper` 函式庫，將紅綠黃三燈集合成一組燈號。
+
+`RYG.rb` 這支程式就是我們的專題的核心，require 的函式庫有 `lights`、`config`、`ibeacon`。  
 
 1. 一開始先用 `config.rb` 讀取 `config.json`，取得紅綠黃燈的秒數與把ibeacon所需的參數傳給 `ibeacon.rb`。
-2. 進入無窮迴圈，紅綠黃燈輪迴，透過 PiPiper 函式庫輸出高電位至對應燈號角位，並且輸出對應燈號的 ibeacon minor 值。
+2. 進入無窮迴圈，紅綠黃燈輪迴，透過 `lights.rb` 輸出燈號，與對應燈號的 ibeacon minor 值。
 3. 捕捉 interrupt 訊號，如果程式被中斷，即將燈號電位歸零，ibeacon廣播終止。
+
 
 
 ### <a name="pi-7"></a>GPIO 與 LED 線路
