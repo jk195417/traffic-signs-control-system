@@ -1,94 +1,126 @@
 #include <SoftwareSerial.h>
-#define CHAR_MAX 128
-#define UUID 32
-#define MAJOR 4
-#define MINOR 4
+#include <Bounce2.h>
+
+#define LED_R_PIN 2
+#define LED_G_PIN 4
+#define LED_Y_PIN 6
+#define SWITCH_PIN 8
 
 // SoftwareSerial(rxPin, txPin, inverse_logic)
-// RX Pin 10 for Receive,TX Pin 9 for Send
-SoftwareSerial hm_10(10, 9);
-// temp for char
+SoftwareSerial hm_10(10, 12);
+// 暫存變數
 char chr;
-static int i,resSize,reqSize;
+static int i;
+// 解決硬體開關彈跳
+Bounce bouncer = Bounce();
+boolean status;
+
+// 根據傳入參數亮燈
+// "01"亮紅燈  "02" 亮綠燈  "03" 亮黃燈  "00"不亮燈
+void ligth_up_led(String str){
+  // 檢查傳入參數是不是為2個字元，否則將參數設為"00"
+  if(!str.length() == 2){
+    str = "00";
+  }
+
+  if(str == "01"){
+    digitalWrite(LED_R_PIN, HIGH);
+    digitalWrite(LED_G_PIN, LOW);
+    digitalWrite(LED_Y_PIN, LOW);
+  }else if(str == "02"){
+    digitalWrite(LED_R_PIN, LOW);
+    digitalWrite(LED_G_PIN, HIGH);
+    digitalWrite(LED_Y_PIN, LOW);
+  }else if(str == "03"){
+    digitalWrite(LED_R_PIN, LOW);
+    digitalWrite(LED_G_PIN, LOW);
+    digitalWrite(LED_Y_PIN, HIGH);
+  }else{
+    digitalWrite(LED_R_PIN, LOW);
+    digitalWrite(LED_G_PIN, LOW);
+    digitalWrite(LED_Y_PIN, LOW);
+  }
+}
 
 void setup(){
+  // pin設定
+  pinMode(LED_R_PIN, OUTPUT);
+  pinMode(LED_G_PIN, OUTPUT);
+  pinMode(LED_Y_PIN, OUTPUT);
+  pinMode(SWITCH_PIN, INPUT);
+  // Bounce設定
+  bouncer.attach(SWITCH_PIN);
+  bouncer.interval(5);
+  status = false;
+  // baud率設定
   Serial.begin(115200);
   hm_10.begin(115200);
+
   Serial.println("HM-10 is begin listening"); 
 }
 
 void loop(){
-  char response[CHAR_MAX],request[CHAR_MAX],temp[8];
-  char uuid[UUID+1],major[MAJOR+1],minor[MINOR+1];
-  
+  String response = String("");
+  String uuid = String("");
+  String major = String("");
+  String minor = String("");
   // 在response中找尋的iBeacon關鍵字串
-  const char searchCondi[16] = "OK+DISC:4C000215";
+  String searchCondi = "OK+DISC:4C000215";
   
-  // when Serial Monitor receive command
+  // 按鈕開關改變 status
+  if(bouncer.update() && bouncer.read() == LOW){
+    status = !status;
+  }
+
+  // Arduino 如果收到 Serial 來的命令，則傳給 HM-10
+  // 用於下 AT Command 指令
   while(Serial.available() > 0){
-    // Read from Serial Monitor
     chr = Serial.read();
-    request[reqSize] = chr;
-    reqSize++;
-    // Write command to Bluetooth
     hm_10.print(chr);
   }
   
-  // when Bluetooth receive data
-  while(hm_10.available()>0){
-    // Read from Bluetooth
+  // Arduino 如果收到 HM-10 來的回應
+  // 則將回應整理為 response 字串
+  // 於後面判斷
+  while(hm_10.available()){
     chr = hm_10.read();
-    response[resSize] = chr;
-    resSize++;
-    // delay(1); // 9600baud率時硬體會跟不上程式，所以加上這行
+    response += chr;
   }
-  // Write data to Serial Monitor
-  if(resSize>0){
-    // 輸出所有收到的response
-    // Serial.print(String("")+"response = "+response+" size = "+resSize+"\n");
-    // Serial.flush();
-    // delay(1); // 9600baud率時硬體會跟不上程式，所以加上這行
-    
-    // 處理response字串，確認回傳字串是否為目標字串
-    if(strncmp(response, searchCondi, 16)==0){
-      // get uuid major minor from response
-      strncpy (uuid, response+17, UUID);
-      uuid[UUID]='\0';
-      strncpy (major, response+50, MAJOR);
-      major[MAJOR]='\0';
-      strncpy (minor, response+54, MINOR);
-      minor[MINOR]='\0';
+
+  // 如果 response 有內容
+  if(response != ""){
+    // 處理 response 字串，確認回傳字串是否為目標字串
+    if(response.substring(0,searchCondi.length()) == searchCondi){
+      // 取得response字串內uuid,major,minor
+      uuid = response.substring(17,49);
+      major = response.substring(50,54);
+      minor = response.substring(54,58);
       
-      // Serial.print(String("")+"UUID = "+uuid+"\n");
-      // Serial.print(String("")+"Major = "+major+"\n");
-      // Serial.print(String("")+"Minor = "+minor+"\n");
-
-      //判斷紅綠燈
-      if(strncmp(minor, "0001", 4)==0){
-        Serial.print(String("")+"Red"+"\n");
-      }else if(strncmp(minor, "0002", 4)==0){
-        Serial.print(String("")+"Yellow"+"\n");
-      }else if(strncmp(minor, "0003", 4)==0){
-        Serial.print(String("")+"Green"+"\n");
+      // 根據 status 判斷要顯示哪組紅綠燈
+      if(status){
+        ligth_up_led(minor.substring(0,2));
+        Serial.println("status: true");
       }else{
-        Serial.print(String("")+"others"+"\n");
+        ligth_up_led(minor.substring(2,4));
+        Serial.println("status: false");
       }
-
-      // 清除字串暫存
-      memset(uuid,0,UUID+1);
-      memset(major,0,MAJOR+1);
-      memset(minor,0,MINOR+1);
+      
+      // 清除字串
+      uuid = "";
+      major = "";
+      minor = "";
     }
-    
-    // 清除字串暫存
-    resSize=0;
-    memset(response,0,CHAR_MAX);
+
+    response = "";
   }
+
   // 查詢附近iBeacon
   if(!hm_10.available()){
     i++;
-    delay(1); // 硬體會跟不上程式，所以加上這行
-    if(i%1000==0){ // 1*1000 = 1，每1秒查詢一次
+    // 硬體會跟不上程式，所以加上這行
+    delay(1); 
+    // 1*1000 = 1，每1秒查詢一次
+    if(i%1000==0){
       hm_10.print("AT+DISI?");
       hm_10.flush();
       i=0;
