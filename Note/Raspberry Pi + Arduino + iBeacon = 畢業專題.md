@@ -13,7 +13,7 @@
 - [Raspberry Pi : 說明 ibeacon.rb](#pi-3)  
 - [Raspberry Pi : 說明 config.rb 與 config.json](#pi-4)  
 - [Raspberry Pi : 安裝 Pi_piper](#pi-5)  
-- [Raspberry Pi : 說明 RYG.rb](#pi-6)  
+- [Raspberry Pi : 說明 RYG.rb 與 lights.rb](#pi-6)  
 - [Raspberry Pi : 說明 GPIO 與 LED 線路](#pi-7)  
 - [Raspberry Pi : 安裝 Sinatra 與 app.rb](#pi-8)  
 - [Raspberry Pi : 安裝與設定 Passenger](#pi-9)  
@@ -32,12 +32,12 @@
     1. microSD 16GB
     2. WiFi USB Dongle
     3. Bluetooth4.0 USB Dongle
-    4. 紅綠黃LED各一
-    5. 10k電阻三個
+    4. 紅綠黃LED各2
+    5. 10k電阻2個
 2. Arduino Uno
     1. HM-10
     2. 紅綠黃LED各1
-    3. 10k電阻3個
+    3. 10k電阻1個
 3. 其他
     1. 線材
     2. 行動電源2個 
