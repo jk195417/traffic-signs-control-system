@@ -1,19 +1,16 @@
 #include <SoftwareSerial.h>
-#include <Bounce2.h>
 
 #define LED_R_PIN 2
-#define LED_G_PIN 4
-#define LED_Y_PIN 6
+#define LED_Y_PIN 4
+#define LED_G_PIN 6
 #define SWITCH_PIN 8
 
 // SoftwareSerial(rxPin, txPin, inverse_logic)
 SoftwareSerial hm_10(10, 12);
 // 暫存變數
 char chr;
-static int i;
-// 解決硬體開關彈跳
-Bounce bouncer = Bounce();
-boolean status;
+static int i,btn_count;
+boolean push,old_push,state;
 
 // 根據傳入參數亮燈
 // "01"亮紅燈  "02" 亮綠燈  "03" 亮黃燈  "00"不亮燈
@@ -48,15 +45,14 @@ void setup(){
   pinMode(LED_G_PIN, OUTPUT);
   pinMode(LED_Y_PIN, OUTPUT);
   pinMode(SWITCH_PIN, INPUT);
-  // Bounce設定
-  bouncer.attach(SWITCH_PIN);
-  bouncer.interval(5);
-  status = false;
+  state = false;
+  push = false;
   // baud率設定
   Serial.begin(115200);
   hm_10.begin(115200);
-
-  Serial.println("HM-10 is begin listening"); 
+  if(hm_10.isListening()){
+    Serial.println("HM-10 is begin listening");
+  }
 }
 
 void loop(){
@@ -66,12 +62,23 @@ void loop(){
   String minor = String("");
   // 在response中找尋的iBeacon關鍵字串
   String searchCondi = "OK+DISC:4C000215";
-  
-  // 按鈕開關改變 status
-  if(bouncer.update() && bouncer.read() == LOW){
-    status = !status;
-  }
 
+  // 按鈕開關改變 state
+  if(digitalRead(SWITCH_PIN)== LOW){
+    btn_count++;
+  }else{
+    btn_count=0;
+  }
+  old_push = push;
+  if(btn_count>20){
+    push = true;
+  }else{
+    push = false;  
+  }
+  if(push==false && old_push==true){
+    state = !state;  
+  }
+      
   // Arduino 如果收到 Serial 來的命令，則傳給 HM-10
   // 用於下 AT Command 指令
   while(Serial.available() > 0){
@@ -85,24 +92,27 @@ void loop(){
   while(hm_10.available()){
     chr = hm_10.read();
     response += chr;
+    
   }
 
   // 如果 response 有內容
   if(response != ""){
     // 處理 response 字串，確認回傳字串是否為目標字串
     if(response.substring(0,searchCondi.length()) == searchCondi){
+      Serial.println(response);
+      
       // 取得response字串內uuid,major,minor
       uuid = response.substring(17,49);
       major = response.substring(50,54);
       minor = response.substring(54,58);
       
       // 根據 status 判斷要顯示哪組紅綠燈
-      if(status){
+      if(state){
         ligth_up_led(minor.substring(0,2));
-        Serial.println("status: true");
+        Serial.println("state: true");
       }else{
         ligth_up_led(minor.substring(2,4));
-        Serial.println("status: false");
+        Serial.println("state: false");
       }
       
       // 清除字串
